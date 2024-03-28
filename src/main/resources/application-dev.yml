@@ -17,4 +17,4 @@ spring:
 #    username: root
 #    password:
 custom:
-  fileDirPath: /usr/file
+  fileDirPath: /user/file

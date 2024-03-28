@@ -1,6 +1,8 @@
 package com.example.nextJsCourse.domain.article.controller;
 
 import com.example.nextJsCourse.domain.article.entity.Article;
+import com.example.nextJsCourse.domain.article.service.ArticleService;
+import com.example.nextJsCourse.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,19 +16,22 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/articles")
 public class ApiV1ArticleController {
+    private final ArticleService articleService;
+
     @GetMapping("")
-    public List<Article> getArticles() {
-        List<Article> articles = new ArrayList<>();
+    public RsData<List<Article>> getArticles() {
+        List<Article> articles = this.articleService.getList();
 //        articles.add(new Article((1L)));
 //        articles.add(new Article((2L)));
 //        articles.add(new Article((3L)));
 
-        return articles;
+        return RsData.of("S-1", "성공", articles);
     }
 
     @GetMapping("/{id}")
     public Article getArticle(@PathVariable("id") Long id) {
-        Article article = new Article();
+        Article article = this.articleService.getArticle(id);
+
         return article;
     }
 }
