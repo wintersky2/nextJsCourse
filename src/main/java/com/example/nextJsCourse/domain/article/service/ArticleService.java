@@ -5,6 +5,7 @@ import com.example.nextJsCourse.domain.article.repository.ArticleRepository;
 import com.example.nextJsCourse.global.rsData.RsData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,39 +23,45 @@ public class ArticleService {
         return this.articleRepository.findById(id);
     }
 
-    public Article create(String subject, String content) {
+    @Transactional
+    public RsData create(String subject, String content) {
         Article article = Article.builder()
                 .subject(subject)
                 .content(content)
                 .build();
-
-        this.articleRepository.save(article);
-
-        return article;
+        try {
+            this.articleRepository.save(article);
+        } catch (Exception error) {
+            return RsData.of("F-3", "실패", error);
+        }
+        return RsData.of("S-3", "성공", article);
     }
 
-    public Article update(Long id, String subject, String content) {
-        if (getArticle(id).isEmpty()) {
-            return null;
-        }
-        Article updatedArticle = getArticle(id).get().toBuilder()
-                .subject(subject)
-                .content(content)
-                .build();
-
-        this.articleRepository.save(updatedArticle);
-
-        return updatedArticle;
+    public Optional<Article> findById(Long id) {
+        return articleRepository.findById(id);
     }
 
-    public RsData<String> delete(Long id) {
-        if (getArticle(id).isEmpty()) {
-            return RsData.of("F-1", "실패", "존재하지 않는 글");
-        }
-        Article deletedArticle = getArticle(id).get();
-        this.articleRepository.delete(getArticle(id).get());
+    public RsData<Article> update(Article article, String subject, String content) {
+        article.setSubject(subject);
+        article.setContent(content);
+        articleRepository.save(article);
 
-        return RsData.of("S-1", "성공", "ID: " + id + ", " + "제목: "
-                + deletedArticle.getSubject() + ", " + "내용: " + deletedArticle.getContent());
+        return RsData.of(
+                "S-4",
+                "%d번 게시물이 수정 되었습니다.".formatted(article.getId()),
+                article
+        );
+    }
+
+    @Transactional
+    public RsData delete(Article article) {
+        try{
+            this.articleRepository.delete(article);
+        }catch (Exception error){
+            return RsData.of("F-5","실패",error);
+        }
+
+        return RsData.of("S-5", "성공", "ID: " + article.getId() + ", " + "제목: "
+                + article.getSubject() + ", " + "내용: " + article.getContent());
     }
 }
