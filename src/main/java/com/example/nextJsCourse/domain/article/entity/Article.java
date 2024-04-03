@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-    @NoArgsConstructor
-    @SuperBuilder
-    @ToString(callSuper = true)
-    public class Article extends BaseEntity {
-        private String subject;
-        private String content;
-    }
+@NoArgsConstructor
+@SuperBuilder(toBuilder = true)
+@ToString(callSuper = true)
+public class Article extends BaseEntity {
+    private String subject;
+    private String content;
+}
