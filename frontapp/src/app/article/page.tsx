@@ -1,14 +1,14 @@
 "use client"
 
 import Link from "next/link";
-import {useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Article() {
 
     const [articles, setArticles] = useState([]);
     const [subject, setSubject] = useState('');
     const [content, setContent] = useState('');
-    
+
     useEffect(() => {
         fetchArticle();
     }, []);
@@ -54,14 +54,13 @@ export default function Article() {
     return (
         <div>
             <ul>
-                {(articles).map((article) => <li><Link href={`article/${article.id}`}>{article.id} 번</Link> / 제목: {article.subject} / 내용: {article.content}</li>)}
+                {(articles).map((article) => <li key={article.id}><Link href={`/article/${article.id}`}>{article.id} 번</Link> / 제목: {article.subject} / 내용: {article.content}</li>)}
             </ul>
             <form>
                 <input type="text" onChange={subjectForm} />
                 <input type="text" onChange={contentForm} />
                 <button type="button" onClick={postArticle}>등록</button>
             </form>
-
         </div>
     );
 }
