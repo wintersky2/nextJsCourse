@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @ToString(callSuper = true)
 public class Article extends BaseEntity {
     private String subject;

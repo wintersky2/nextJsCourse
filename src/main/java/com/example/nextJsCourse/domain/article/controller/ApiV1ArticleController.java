@@ -6,9 +6,6 @@ import com.example.nextJsCourse.global.rsData.RsData;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -21,82 +18,83 @@ import java.util.Optional;
 public class ApiV1ArticleController {
     private final ArticleService articleService;
 
-    @Data
     @AllArgsConstructor
-    public static class ReadArticlesResponse {
+    @Getter
+    public static class ArticlesResponse {
         private final List<Article> articles;
     }
 
-
-    @Data
-    @AllArgsConstructor
-    public static class ReadArticleResponse {
-        private final Article article;
-    }
-
-    @Data
-    public static class CreateArticleRequest {
-        @NotBlank
-        private String subject;
-        @NotBlank
-        private String content;
-    }
-
-    @Data
-    @AllArgsConstructor
-    public static class CreateArticleResponse {
-        private final Article article;
-    }
-
-    @Data
-    public static class UpdateArticleRequest {
-        @NotBlank
-        private String subject;
-        @NotBlank
-        private String content;
-    }
-
-    @Data
-    @AllArgsConstructor
-    public static class UpdateArticleResponse {
-        private final Article article;
-    }
-
     @GetMapping("")
-    public RsData<ReadArticlesResponse> getArticles() {
+    public RsData<ArticlesResponse> getArticles() {
         List<Article> articles = this.articleService.getList();
 
-        return RsData.of("S-1", "성공", new ReadArticlesResponse(articles));
+        return RsData.of("S-1", "성공", new ArticlesResponse(articles));
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public  static class ArticleResponse {
+        private final Article article;
     }
 
     @GetMapping("/{id}")
-    public RsData<ReadArticleResponse> getArticle(@PathVariable(value = "id") Long id) {
-        return
-                this.articleService.getArticle(id).map(article -> RsData.of(
-                        "S-2",
-                        "성공",
-                        new ReadArticleResponse(article)
-                )).orElseGet(() -> RsData.of(
-                        "F-2",
-                        "%d 번 게시물은 존재하지 않습니다.".formatted(id),
-                        null
-                ));
+    public RsData<ArticleResponse> getArticle (@PathVariable("id") Long id) {
+        return articleService.getArticle(id).map(article -> RsData.of(
+                "S-1",
+                "성공",
+                new ArticleResponse(article)
+        )).orElseGet(() -> RsData.of(
+                "F-1",
+                "%d 번 게시물은 존재하지 않습니다.".formatted(id),
+                null
+        ));
+    }
+
+    @Data
+    public static class WriteRequest {
+        @NotBlank
+        private String subject;
+        @NotBlank
+        private String content;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class WriteResponse {
+        private final Article article;
     }
 
     @PostMapping("")
-    public RsData<CreateArticleResponse> postArticle(@Valid @RequestBody CreateArticleRequest createArticleRequest) {
-        RsData<Article> postRs = this.articleService.create(createArticleRequest.getSubject(), createArticleRequest.getContent());
+    public RsData<WriteResponse> write (@Valid @RequestBody WriteRequest writeRequest) {
 
-        if (postRs.isFail()) return (RsData) postRs;
+        RsData<Article> writeRs = this.articleService.create(writeRequest.getSubject(), writeRequest.getContent());
+
+        if(writeRs.isFail()) return (RsData) writeRs;
+
         return RsData.of(
-                postRs.getResultCode(),
-                postRs.getMsg(),
-                new CreateArticleResponse(postRs.getData()));
+                writeRs.getResultCode(),
+                writeRs.getMsg(),
+                new WriteResponse(writeRs.getData())
+        );
+    }
+
+
+    @Data
+    public static class ModifyRequest {
+        @NotBlank
+        private String subject;
+        @NotBlank
+        private String content;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ModifyResponse {
+        private final Article article;
     }
 
     @PatchMapping("/{id}")
-    public RsData<UpdateArticleResponse> putArticle(@Valid @RequestBody UpdateArticleRequest updateArticleRequest,
-                                                    @PathVariable(value = "id") Long id) {
+    public RsData modify(@Valid @RequestBody ModifyRequest modifyRequest, @PathVariable("id") Long id) {
         Optional<Article> optionalArticle = this.articleService.findById(id);
 
         if (optionalArticle.isEmpty()) return RsData.of(
@@ -107,17 +105,23 @@ public class ApiV1ArticleController {
 
         // 회원 권한 체크 canModify();
 
-        RsData<Article> modifyRs = this.articleService.update(optionalArticle.get(), updateArticleRequest.getSubject(), updateArticleRequest.getContent());
+        RsData<Article> modifyRs = this.articleService.modify(optionalArticle.get(), modifyRequest.getSubject(), modifyRequest.getContent());
 
         return RsData.of(
                 modifyRs.getResultCode(),
                 modifyRs.getMsg(),
-                new UpdateArticleResponse(modifyRs.getData())
+                new ModifyResponse(modifyRs.getData())
         );
     }
 
+    @AllArgsConstructor
+    @Getter
+    public static class RemoveResponse {
+        private final Article article;
+    }
+
     @DeleteMapping("/{id}")
-    public RsData deleteArticle(@PathVariable(value = "id") Long id) {
+    public RsData<RemoveResponse> remove (@PathVariable("id") Long id) {
         Optional<Article> optionalArticle = this.articleService.findById(id);
 
         if (optionalArticle.isEmpty()) return RsData.of(
@@ -126,10 +130,13 @@ public class ApiV1ArticleController {
                 null
         );
 
-        RsData deleteRs = this.articleService.delete(optionalArticle.get());
+        RsData<Article> deleteRs = articleService.deleteById(id);
+
         return RsData.of(
                 deleteRs.getResultCode(),
                 deleteRs.getMsg(),
-                deleteRs.getData());
+                new RemoveResponse(optionalArticle.get())
+        );
     }
+
 }
